@@ -7,13 +7,16 @@ package main
 
 
 import (
-	//"fmt"
+	"fmt"
+	"time"
 	"github.com/gotk3/gotk3/gtk"
 	//"github.com/rakyll/portmidi"
 )
 
 
 func main() {
+
+	go Midi()
 
     gtk.Init(nil)
 
@@ -36,5 +39,17 @@ func mainWin() {
 	})
 
 	mwin.ShowAll()
+}
+
+
+func Midi() {
+	n := 0
+
+	for n < 100 {
+		fmt.Println("loop:", n)
+
+		time.Sleep(200 * time.Millisecond)
+		n++
+	}
 }
 
