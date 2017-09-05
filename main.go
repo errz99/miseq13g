@@ -7,6 +7,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/rakyll/portmidi"
@@ -14,16 +15,20 @@ import (
 
 type Status struct {
 	MidiOn bool
+	Count  int
+	Label  *gtk.Label
 }
 
 
 func main() {
 
-	s := Status{true}
-
-	go Midi(&s)
+	s := Status{true, 0, nil}
 
 	gtk.Init(nil)
+
+	s.Label, _ = gtk.LabelNew("Loop: " + strconv.Itoa(s.Count))
+
+	go Midi(&s)
 
 	mainWin(&s)
 
@@ -33,8 +38,7 @@ func main() {
 
 
 func Midi(s *Status) {
-	n := 1
-
+	
 	portmidi.Initialize()
 	_, err := portmidi.NewOutputStream(portmidi.DefaultOutputDeviceID(), 1024, 0)
 	if err != nil {
@@ -44,9 +48,9 @@ func Midi(s *Status) {
 	}
 
 	for s.MidiOn == true {
-		fmt.Println("loop:", n)
+		s.Count++
+		s.Label.SetText("Loop: " + strconv.Itoa(s.Count))
 		time.Sleep(200 * time.Millisecond)
-		n++
 	}
 
 	fmt.Println("terminating portmidi")
@@ -57,7 +61,8 @@ func Midi(s *Status) {
 func mainWin(s *Status) {
 	mwin, _ := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
 	mwin.SetPosition(gtk.WIN_POS_CENTER)
-	mwin.SetDefaultSize(500, 300)
+	mwin.SetDefaultSize(300, 150)
+	mwin.SetBorderWidth(8)
 	mwin.SetTitle("Sequente 13g")
 	mwin.AddEvents(2097152)
 
@@ -67,12 +72,15 @@ func mainWin(s *Status) {
 
 	vbox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	mwin.Add(vbox)
+	hbox, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+	vbox.Add(hbox)	
+	hbox.PackStart(s.Label, false, false, 8)
 
 	check, _ := gtk.SwitchNew()
 	check.SetActive(s.MidiOn)
 	check.SetCanFocus(false)
 	check.SetMarginEnd(8)
-	vbox.Add(check)
+	hbox.PackEnd(check, false, false, 0)
 
 	check.Connect("state-set", func() {
 		che := check.GetActive()
