@@ -5,12 +5,11 @@ package main
 // 20170905
 // M Arias
 
-
 import (
 	"fmt"
 	"time"
 	"github.com/gotk3/gotk3/gtk"
-	//"github.com/rakyll/portmidi"
+	"github.com/rakyll/portmidi"
 )
 
 
@@ -45,11 +44,19 @@ func mainWin() {
 func Midi() {
 	n := 0
 
+	portmidi.Initialize()
+	_, err := portmidi.NewOutputStream(portmidi.DefaultOutputDeviceID(), 1024, 0)
+	if err != nil {
+		fmt.Println("error opening output stream -", err)
+	}
+
 	for n < 100 {
 		fmt.Println("loop:", n)
-
 		time.Sleep(200 * time.Millisecond)
 		n++
 	}
+
+	fmt.Println("terminating portmidi")
+	portmidi.Terminate()
 }
 
